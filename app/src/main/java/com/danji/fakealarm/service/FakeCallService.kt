@@ -2,15 +2,14 @@ package com.danji.fakealarm.service
 
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.PendingIntent.CanceledException
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.IBinder
 import android.os.Vibrator
-import android.util.Log
 import android.widget.Toast
-import com.danji.fakealarm.activity.FakeCallActivity
+import com.danji.fakealarm.activity.MainActivity
 
 
 class FakeCallService : Service() {
@@ -21,21 +20,23 @@ class FakeCallService : Service() {
 
     internal var vibrator: Vibrator? = null
 
+    private var mp: MediaPlayer? = null
+
     override fun onCreate() {
 
         // vibrate
         vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
-        try {
-            val intent = Intent(baseContext, FakeCallActivity::class.java)
-            val pi = PendingIntent.getActivity(
-                    baseContext, 0, intent,
-                    PendingIntent.FLAG_ONE_SHOT)
-            pi.send()
-        } catch (e: CanceledException) {
-            e.printStackTrace()
-        }
+        val intent = Intent(baseContext, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        intent.putExtra("Alarm", true)
+        val pi = PendingIntent.getActivity(baseContext, 0, intent, PendingIntent.FLAG_ONE_SHOT)
+        pi.send()
 
+
+
+
+        /*
         val triggerService = Thread(Runnable {
             // TODO Auto-generated method stub
             while (isRunning) {
@@ -61,11 +62,14 @@ class FakeCallService : Service() {
         })
 
         triggerService.start()
+        */
     }
 
     override fun onDestroy() {
 
         isRunning = false
+
+        mp!!.stop()
 
         // Tell the user we stopped.
         Toast.makeText(this, "종료합니다.", Toast.LENGTH_SHORT).show()

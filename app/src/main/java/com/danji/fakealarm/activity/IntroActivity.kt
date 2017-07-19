@@ -18,10 +18,11 @@ class IntroActivity : AppCompatActivity() {
         var introRunnable = Runnable {
             run {
                 startActivity(Intent(this, MainActivity::class.java))
+                finish()
             }
         }
 
         var handler = Handler()
-        handler.postDelayed(introRunnable, 3000)
+        handler.postDelayed(introRunnable, 1000)
     }
 }
