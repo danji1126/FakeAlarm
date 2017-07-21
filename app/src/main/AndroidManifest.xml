@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.danji.fakealarm">
+    package="com.danji.certainalarm">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activity.IntroActivity"
+            android:name="com.danji.certainalarm.activity.IntroActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,19 +26,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.MainActivity" />
-
-
-
-
-        <activity android:name=".activity.FakeRingingActivity" />
+        <activity android:name="com.danji.certainalarm.activity.MainActivity" />
 
         <service
-            android:name=".service.FakeCallService"
+            android:name="com.danji.certainalarm.service.AlarmCallService"
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".activity.FakeCallActivity"></activity>
     </application>
 
 </manifest>

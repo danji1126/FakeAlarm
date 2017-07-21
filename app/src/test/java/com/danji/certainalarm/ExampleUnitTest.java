@@ -1,4 +1,4 @@
-package com.danji.fakealarm;
+package com.danji.certainalarm;
 
 import org.junit.Test;
 

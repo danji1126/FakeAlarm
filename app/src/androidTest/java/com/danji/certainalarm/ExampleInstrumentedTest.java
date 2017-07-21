@@ -1,4 +1,4 @@
-package com.danji.fakealarm;
+package com.danji.certainalarm;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

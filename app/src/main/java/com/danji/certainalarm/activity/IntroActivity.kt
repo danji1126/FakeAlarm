@@ -1,10 +1,10 @@
-package com.danji.fakealarm.activity
+package com.danji.certainalarm.activity
 
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.support.v7.app.AppCompatActivity
-import com.danji.fakealarm.R
+import com.danji.certainalarm.R
 
 class IntroActivity : AppCompatActivity() {
 

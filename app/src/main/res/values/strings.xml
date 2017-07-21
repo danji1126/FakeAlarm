@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">FakeAlarm</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="app_name">Certain Alarm</string>
+    <string name="btn_save">저장</string>
+    <string name="btn_run">실행</string>
+    <string name="chk_call">전화걸기</string>
 </resources>

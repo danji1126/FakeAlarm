@@ -1,4 +1,4 @@
-package com.danji.fakealarm.activity
+package com.danji.certainalarm.activity
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -6,38 +6,49 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.support.v7.app.AppCompatActivity
-import android.telephony.TelephonyManager
 import android.util.Log
 import android.widget.Toast
-import com.danji.fakealarm.R
-import com.danji.fakealarm.model.Contact
-import com.danji.fakealarm.service.FakeCallService
+import com.danji.certainalarm.R
+import com.danji.certainalarm.model.Contact
+import com.danji.certainalarm.service.AlarmCallService
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class MainActivity : AppCompatActivity() {
     val TAG = "MainActivity"
     var mCalendar: GregorianCalendar? = null
-    lateinit var task:LoadingTask
+    lateinit var mp: MediaPlayer
+    lateinit var am: AudioManager
+    lateinit var task: LoadingTask
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        var contactList = getContactList()
-        var idx = 0
         mCalendar = GregorianCalendar()
 
-        var mAlarmMgr: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        mp = MediaPlayer.create(applicationContext, notification)
+        am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        var mAlarmMgr: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         //저장
         btnSave.setOnClickListener {
             var hour: Int = 0
@@ -48,90 +59,95 @@ class MainActivity : AppCompatActivity() {
             } else {
                 hour = timePicker.currentHour
                 minute = timePicker.currentMinute
-
             }
 
-            (mCalendar as GregorianCalendar).set(GregorianCalendar.HOUR_OF_DAY, hour)
-            (mCalendar as GregorianCalendar).set(GregorianCalendar.MINUTE, minute)
+            //전화번호 가져오기
+            var contact = GetRandomContact()
+            if (contact == null) {
+                Toast.makeText(this, "전화를 할 연락처가 없습니다. ㅠ.ㅠ", Toast.LENGTH_SHORT).show()
+            } else {
+                //시간 가져오기
+                (mCalendar as GregorianCalendar).set(GregorianCalendar.HOUR_OF_DAY, hour)
+                (mCalendar as GregorianCalendar).set(GregorianCalendar.MINUTE, minute)
 
-//            fullTime = hour.toString() + " : " + minute.toString()
+                //체크박스 가져오기
+                var alIntent = Intent(this, AlarmCallService::class.java)
+                alIntent.putExtra("telNo", contact.phonenum)
+                alIntent.putExtra("telIndc", checkBox.isChecked)
 
-            var showText = ""
-            if (contactList.size > 0) {
-                var random = Random()
-                idx = random.nextInt(contactList.size)
-                showText += "idx=" + idx
-                showText += " value1=" + contactList[idx].name
-                showText += " value2=" + contactList[idx].phonenum
-                showText += " value3=" + contactList[idx].photoid
+                //알람설정
+                val pIntent = PendingIntent.getService(this@MainActivity, 0, alIntent, 0)
+                //test code
+//                mAlarmMgr.set(AlarmManager.RTC, System.currentTimeMillis() + 1000, pIntent)
+//                mAlarmMgr.set(AlarmManager.RTC, mCalendar!!.timeInMillis, pIntent)
+                var showText = hour.toString() + " : " + minute.toString() + " / " + contact.phonenum
 
+                val oneday = (24 * 60 * 60 * 1000).toLong()// 24시간
+                mAlarmMgr.setRepeating(AlarmManager.RTC, mCalendar!!.timeInMillis, oneday, pIntent)
+
+                Toast.makeText(this, "저장되었습니다.", Toast.LENGTH_SHORT).show()
             }
-
-            Toast.makeText(this, showText, Toast.LENGTH_SHORT).show()
-
         }
 
-        //실행
+        //실행 테스트 코드
         btnRun.setOnClickListener {
-            val pIntent = PendingIntent.getService(this@MainActivity, 0, Intent(this, FakeCallService::class.java), 0)
-            if (contactList.size > 0) {
-                var tm: TelephonyManager = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+//                var tm: TelephonyManager = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
 //                startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contactList[idx].phonenum)))
 //                val pIntent = PendingIntent.getActivity(this@MainActivity, 0, Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + contactList[idx].phonenum)), 0)
 //                mAlarmMgr.set(AlarmManager.RTC, (mCalendar as GregorianCalendar).timeInMillis, pIntent)
-                mAlarmMgr.set(AlarmManager.RTC, System.currentTimeMillis()+1000, pIntent)
-                Toast.makeText(this, "Start!!", Toast.LENGTH_SHORT).show()
+//                val oneday = (24 * 60 * 60 * 1000).toLong()// 24시간
+//                mAlarmMgr.setRepeating(AlarmManager.RTC, System.currentTimeMillis()+1000, oneday, pIntent)
 //                finish()
-
-            } else {
-                Toast.makeText(this, "연락처가 없습니다. ㅠ.ㅠ", Toast.LENGTH_SHORT).show()
-            }
-
         }
-    }
 
-    override fun onResume() {
-        super.onResume()
-
-        if(intent != null && intent.extras != null){
-            var alarmIndc = intent.extras.getBoolean("Alarm")
-            if(alarmIndc){
-                intent.putExtra("Alarm", false)
-                var mp: MediaPlayer? = null
-                val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-                mp = MediaPlayer.create(applicationContext, notification)
-//                mp!!.start()
+        //액티비티가 다시 실행 되었을때 팝업 호출
+        if (intent != null && intent.extras != null) {
+            var alarmIndc = intent.extras.getBoolean("alarm")
+            if (alarmIndc) {
+                var telNo = intent.extras.getString("telNo")
+                var telIndc = intent.extras.getBoolean("telIndc")
+                //초기화
+                intent.putExtra("alarm", false)
+                intent.putExtra("telNo", false)
+                intent.putExtra("telIndc", false)
+                var maxVolum = am.getStreamMaxVolume(AudioManager.STREAM_RING)
+                mp.setVolume(maxVolum.toFloat(), maxVolum.toFloat())
+                am.setStreamVolume(AudioManager.STREAM_RING, maxVolum, maxVolum)
+                mp!!.start()
 
                 var pd = ProgressDialog(this)
                 pd.setTitle("알람")
                 pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
                 pd.setMessage("빨리 끄지 않으면...")
                 pd.setCancelable(true)
-                pd.setButton(DialogInterface.BUTTON_POSITIVE, "숨기기",
+                pd.setButton(DialogInterface.BUTTON_POSITIVE, "알람끄기",
                         DialogInterface.OnClickListener { dialog, which ->
                             task.cancel(true)
-//                            dialog.cancel()
                             Toast.makeText(this,
-                                    "Hide clicked",
+                                    "일어나셨군요.",
                                     Toast.LENGTH_SHORT).show()
                         })
-                task = LoadingTask(pd)
+
+                task = LoadingTask(pd, this, mp, telNo, telIndc)
                 task.execute()
-
-
-//                mp.stop()
             }
-
         }
     }
 
-
-    class LoadingTask(pd: ProgressDialog) : AsyncTask<String, Int, Boolean>() {
+    class LoadingTask(pd: ProgressDialog, context: Context, mp: MediaPlayer, telNo: String, telIndc: Boolean) : AsyncTask<String, Int, Boolean>() {
         val TAG = "LoadingTask"
         private var pd: ProgressDialog? = null
+        private var context: Context? = null
+        private var mp: MediaPlayer? = null
+        private var telIndc: Boolean = false
+        private var telNo: String = ""
 
         init {
             this.pd = pd
+            this.context = context
+            this.mp = mp
+            this.telNo = telNo
+            this.telIndc = telIndc
         }
 
         override fun onPreExecute() {
@@ -141,11 +157,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun doInBackground(vararg params: String): Boolean? {
             try {
-//                Thread.sleep((1000 * 20).toLong())
                 for (i in 0..10) {
-//                    if(this.isCancelled()){
-//                        return false
-//                    }
                     pd!!.setProgress(i * 10)
                     Thread.sleep(500)
                 }
@@ -156,15 +168,37 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onCancelled(result: Boolean?) {
+            super.onCancelled(result)
             Log.d(TAG, "onCancelled : " + result!!)
+            mp?.stop()
             pd?.dismiss()
         }
 
         override fun onPostExecute(result: Boolean?) {
+            super.onPostExecute(result)
             Log.d(TAG, "onPostExecute : " + result!!)
+            mp?.stop()
+            if (telIndc) {
+                context!!.startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:" + telNo)))
+            } else {
+                context!!.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + telNo)))
+            }
             pd?.dismiss()
 
         }
+    }
+
+    //주소록 중 1개 연락처 랜덤으로 가져오기
+    private fun GetRandomContact(): Contact {
+        var idx = 0
+        var rtn: Contact? = null
+        var contactList = getContactList()
+        if (contactList.size > 0) {
+            var random = Random()
+            idx = random.nextInt(contactList?.size!!)
+            rtn = contactList?.get(idx)
+        }
+        return rtn as Contact
     }
 
     //주소록 전화번호
@@ -182,7 +216,7 @@ class MainActivity : AppCompatActivity() {
         if (contactCursor.moveToFirst()) {
             do {
                 var phonenumber = contactCursor.getString(1).replace("-", "")
-                if (phonenumber.length > 3) { //112, 119와 같은 번호는 List 에서 제외
+                if (phonenumber.length > 9) { //112, 119와 같은 번호는 List 에서 제외
                     if (phonenumber.length == 10) {
                         phonenumber = phonenumber.substring(0, 3) + "-" + phonenumber.substring(3, 6) + "-" + phonenumber.substring(6)
                     } else if (phonenumber.length > 8) {

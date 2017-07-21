@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.danji.fakealarm.activity.MainActivity">
+    tools:context="com.danji.certainalarm.activity.MainActivity">
 
-
-    <Button
-        android:id="@+id/btnSave"
+    <CheckBox
+        android:id="@+id/checkBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="저장"
+        android:text="@string/chk_call"
+        android:textAppearance="?android:textAppearanceLarge"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -19,18 +19,25 @@
         android:id="@+id/btnRun"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="실행"
+        android:text="@string/btn_run"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnSave" />
+
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_save"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TimePicker
         android:id="@+id/timePicker"
-        android:layout_width="368dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:timePickerMode="spinner"
-        app:layout_constraintBottom_toTopOf="parent"
         android:foregroundGravity="center"
-        tools:layout_editor_absoluteX="8dp" />
-
+        android:timePickerMode="spinner"
+        app:layout_constraintBottom_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

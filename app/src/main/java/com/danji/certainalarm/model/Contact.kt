@@ -1,4 +1,4 @@
-package com.danji.fakealarm.model
+package com.danji.certainalarm.model
 
 /**
  * Created by 10005229 on 2017-07-19.
