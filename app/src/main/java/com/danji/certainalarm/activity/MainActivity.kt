@@ -6,6 +6,7 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.RingtoneManager
@@ -14,6 +15,7 @@ import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.support.annotation.RequiresApi
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
@@ -35,7 +37,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermission()
+        }
         mCalendar = GregorianCalendar()
 
         val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
@@ -43,6 +47,48 @@ class MainActivity : AppCompatActivity() {
         am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
 
+    }
+
+    //권한 확인 코드
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun requestPermission() {
+        var rtn = false
+        if (checkSelfPermission(android.Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "INTERNET 권한이 필요합니다..", Toast.LENGTH_SHORT).show()
+            rtn = true
+        }
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "ACCESS_NETWORK_STATE 권한이 필요합니다..", Toast.LENGTH_SHORT).show()
+            rtn = true
+        }
+        if (checkSelfPermission(android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "CALL_PHONE 권한이 필요합니다..", Toast.LENGTH_SHORT).show()
+            rtn = true
+        }
+        if (checkSelfPermission(android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "READ_CONTACTS 권한이 필요합니다..", Toast.LENGTH_SHORT).show()
+            rtn = true
+        }
+        if (checkSelfPermission(android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "READ_CONTACTS 권한이 필요합니다..", Toast.LENGTH_SHORT).show()
+            rtn = true
+        }
+        if (checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "READ_EXTERNAL_STORAGE 권한이 필요합니다..", Toast.LENGTH_SHORT).show()
+            rtn = true
+        }
+
+        if (rtn) {
+            var permissionArr = arrayOf(
+                android.Manifest.permission.INTERNET
+                ,android.Manifest.permission.ACCESS_NETWORK_STATE
+                ,android.Manifest.permission.CALL_PHONE
+                ,android.Manifest.permission.READ_CONTACTS
+                ,android.Manifest.permission.SET_ALARM
+                ,android.Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+            requestPermissions(permissionArr, 0)
+        }
     }
 
     override fun onResume() {
@@ -91,7 +137,7 @@ class MainActivity : AppCompatActivity() {
 
         //실행 테스트 코드
         btnRun.setOnClickListener {
-//                var tm: TelephonyManager = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+            //                var tm: TelephonyManager = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
 //                startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contactList[idx].phonenum)))
 //                val pIntent = PendingIntent.getActivity(this@MainActivity, 0, Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + contactList[idx].phonenum)), 0)
 //                mAlarmMgr.set(AlarmManager.RTC, (mCalendar as GregorianCalendar).timeInMillis, pIntent)
@@ -189,7 +235,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     //주소록 중 1개 연락처 랜덤으로 가져오기
-    private fun GetRandomContact(): Contact {
+    private fun GetRandomContact(): Contact? {
         var idx = 0
         var rtn: Contact? = null
         var contactList = getContactList()
@@ -198,7 +244,7 @@ class MainActivity : AppCompatActivity() {
             idx = random.nextInt(contactList?.size!!)
             rtn = contactList?.get(idx)
         }
-        return rtn as Contact
+        return rtn
     }
 
     //주소록 전화번호

@@ -23,6 +23,6 @@ class IntroActivity : AppCompatActivity() {
         }
 
         var handler = Handler()
-        handler.postDelayed(introRunnable, 1000)
+        handler.postDelayed(introRunnable, 5000)
     }
 }
